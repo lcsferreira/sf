@@ -120,13 +120,9 @@ cbigStep (Seq c1 c2,s)
   | c1 == Skip = cbigStep (c2,s)
   | otherwise = let (c1',s') = cbigStep (c1,s) in cbigStep (Seq c1' c2, s')
 cbigStep (Atrib (Var x) e,s) = (Skip, mudaVar s x (ebigStep (e,s)))
-cbigStep (While b c, s)
-  | bbigStep (b,s) == True = let (c', s') = cbigStep (c,s) in cbigStep (While b c', s')
-  | otherwise = (Skip, s)
-cbigStep (DoWhile c b,s)
-  | bbigStep (b,s) == True = let (c', s') = cbigStep (c,s) in cbigStep (DoWhile c' b, s')
-  | otherwise = (Skip, s)
-
+cbigStep (While b c, s) = if bbigStep (b,s) then cbigStep (Seq c (While b c), s) else (Skip,s)
+cbigStep (DoWhile c b,s) = let (c',s') = cbigStep (c,s) in if bbigStep (b,s') then cbigStep (DoWhile c' b,s') else (Skip,s)
+cbigStep (Repeat c b,s) = cbigStep (Seq c (If b Skip (Repeat c b)),s)
 --------------------------------------
 ---
 --- Exemplos de programas para teste
@@ -135,7 +131,7 @@ cbigStep (DoWhile c b,s)
 -------------------------------------
 
 exSigma2 :: Memoria
-exSigma2 = [("x",4), ("y",1), ("z",0)]
+exSigma2 = [("x",4), ("y",0), ("z",0)]
 
 
 ---
