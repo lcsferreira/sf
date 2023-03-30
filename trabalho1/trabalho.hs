@@ -124,6 +124,7 @@ cbigStep (If b c1 c2,s)
 cbigStep (Seq c1 c2,s)
   | c1 == Skip = cbigStep (c2,s)
   | otherwise = let (c1',s') = cbigStep (c1,s) in cbigStep (Seq c1' c2, s')
+
 cbigStep (Atrib (Var x) e,s) = (Skip, mudaVar s x (ebigStep (e,s)))
 -- avalia a expressão booleana, se for True, executa uma sequencia do comando c com a chamada recursiva do while, se não, retorna Skip
 cbigStep (While b c, s)
@@ -131,10 +132,9 @@ cbigStep (While b c, s)
   | otherwise = (Skip,s)
 -- avalia a expressão booleana, se for True, executa uma sequencia do comando c com a chamada recursiva do do while, se não, retorna Skip
 cbigStep (DoWhile c b,s)
-  | bbigStep (b,s') == True = cbigStep (DoWhile c' b,s')
+  | bbigStep (b,s) == True = cbigStep (Seq c (DoWhile c b), s)
   | otherwise = (Skip,s)
-  where (c',s') = cbigStep (c,s)
--- avalia a expressão booleana, se for True, avalia para skip, se não, executa uma sequencia do comando c com a uma verificação da expressão booleana e a chamada recursiva do repeat
+-- avalia a expressão booleana, se for True, avalia para skip, se não, executa uma sequencia do comando c com a uma verificação da expressão booleana
 cbigStep (Repeat c b,s)
   | bbigStep (b,s) == True = (Skip,s)
   | otherwise = cbigStep (Seq c (If b Skip (Repeat c b)),s)
@@ -146,7 +146,7 @@ cbigStep (Repeat c b,s)
 -------------------------------------
 
 exSigma2 :: Memoria
-exSigma2 = [("x",4), ("y",0), ("z",0)]
+exSigma2 = [("x", 4), ("y",0), ("z",0)]
 
 
 ---
@@ -173,10 +173,13 @@ progIf :: C
 progIf = If (Leq (Num 10) (Var "x")) (Atrib (Var "y") (Num 5)) (Atrib (Var "y") (Num 0))
 
 -- exemplo de programa usando DO-WHILE
--- programa que soma x a y, enquanto y for menor que 10
+-- programa que soma x+2, enquanto x for menor ou igual a 10
 
 progDoWhile :: C
-progDoWhile = DoWhile (Atrib (Var "y") (Soma (Var "y") (Var "x"))) (Leq (Var "y") (Num 10))
+progDoWhile = DoWhile (Atrib (Var "x") (Soma (Var "x") (Num 2))) (Leq (Var "x") (Num 10))
+
+progWhile :: C
+progWhile = While (Leq (Var "x") (Num 10)) (Atrib (Var "x") (Soma (Var "x") (Num 2))) 
 
 -- Testando programas
 
