@@ -102,9 +102,12 @@ bbigStep (And b1 b2,s )
 bbigStep (Or b1 b2,s )
   | bbigStep (b1,s) == True || bbigStep (b2,s) == True = True
   | otherwise = False
+-- se a e1 for menor ou igual a e2 avalia para True, se não, avalia para False
 bbigStep (Leq e1 e2,s)
-  | ebigStep (e1,s) <= ebigStep (e2,s) = True
+  | ebigStep (e1,s) < ebigStep (e2,s) = True
+  | ebigStep (e1,s) == ebigStep (e2,s) = True
   | otherwise = False
+-- se a e1 for igual a e2 avalia para True, se não, avalia para False
 bbigStep (Igual e1 e2,s)
   | ebigStep (e1,s) == ebigStep (e2,s) = True
   | otherwise = False
@@ -113,23 +116,25 @@ bbigStep (Igual e1 e2,s)
 
 cbigStep :: (C,Memoria) -> (C,Memoria)
 cbigStep (Skip,s) = (Skip,s)
+-- avalia a expressão booleana, se for True, executa o comando c1, se for False, executa o comando c2
 cbigStep (If b c1 c2,s)
   | bbigStep (b,s) == True = cbigStep (c1,s)
   | otherwise = cbigStep (c2,s)
+-- avalia o comando c1, se for Skip, executa o comando c2, se não, executa o comando c1 e depois o c2
 cbigStep (Seq c1 c2,s)
   | c1 == Skip = cbigStep (c2,s)
   | otherwise = let (c1',s') = cbigStep (c1,s) in cbigStep (Seq c1' c2, s')
 cbigStep (Atrib (Var x) e,s) = (Skip, mudaVar s x (ebigStep (e,s)))
--- cbigStep (While b c, s)
+-- avalia a expressão booleana, se for True, executa uma sequencia do comando c com a chamada recursiva do while, se não, retorna Skip
 cbigStep (While b c, s)
   | bbigStep (b,s) == True = cbigStep (Seq c (While b c), s)
   | otherwise = (Skip,s)
--- cbigStep (DoWhile c b,s)
+-- avalia a expressão booleana, se for True, executa uma sequencia do comando c com a chamada recursiva do do while, se não, retorna Skip
 cbigStep (DoWhile c b,s)
   | bbigStep (b,s') == True = cbigStep (DoWhile c' b,s')
   | otherwise = (Skip,s)
   where (c',s') = cbigStep (c,s)
--- cbigStep (Repeat c b,s)
+-- avalia a expressão booleana, se for True, avalia para skip, se não, executa uma sequencia do comando c com a uma verificação da expressão booleana e a chamada recursiva do repeat
 cbigStep (Repeat c b,s)
   | bbigStep (b,s) == True = (Skip,s)
   | otherwise = cbigStep (Seq c (If b Skip (Repeat c b)),s)
