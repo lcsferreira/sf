@@ -104,7 +104,7 @@ bbigStep (Or b1 b2,s )
   | otherwise = False
 -- se a e1 for menor ou igual a e2 avalia para True, se não, avalia para False
 bbigStep (Leq e1 e2,s)
-  | ebigStep (e1,s) < ebigStep (e2,s) = True
+  | ebigStep (e1,s) <= ebigStep (e2,s) = True
   | ebigStep (e1,s) == ebigStep (e2,s) = True
   | otherwise = False
 -- se a e1 for igual a e2 avalia para True, se não, avalia para False
@@ -121,9 +121,7 @@ cbigStep (If b c1 c2,s)
   | bbigStep (b,s) == True = cbigStep (c1,s)
   | otherwise = cbigStep (c2,s)
 -- avalia o comando c1, se for Skip, executa o comando c2, se não, executa o comando c1 e depois o c2
-cbigStep (Seq c1 c2,s)
-  | c1 == Skip = cbigStep (c2,s)
-  | otherwise = let (c1',s') = cbigStep (c1,s) in cbigStep (Seq c1' c2, s')
+cbigStep (Seq c1 c2,s) = let (c1',s') = cbigStep (c1,s) in cbigStep (c2, s')
 
 cbigStep (Atrib (Var x) e,s) = (Skip, mudaVar s x (ebigStep (e,s)))
 -- avalia a expressão booleana, se for True, executa uma sequencia do comando c com a chamada recursiva do while, se não, retorna Skip
@@ -146,7 +144,7 @@ cbigStep (Repeat c b,s)
 -------------------------------------
 
 exSigma2 :: Memoria
-exSigma2 = [("x", 4), ("y",0), ("z",0)]
+exSigma2 = [("x", 10), ("y",0), ("z",0)]
 
 
 ---
@@ -173,7 +171,7 @@ progIf :: C
 progIf = If (Leq (Num 10) (Var "x")) (Atrib (Var "y") (Num 5)) (Atrib (Var "y") (Num 0))
 
 -- exemplo de programa usando DO-WHILE
--- programa que soma x+2, enquanto x for menor ou igual a 10
+-- programa que soma x+2, enquanto x for menor ou igual que 10
 
 progDoWhile :: C
 progDoWhile = DoWhile (Atrib (Var "x") (Soma (Var "x") (Num 2))) (Leq (Var "x") (Num 10))
