@@ -152,6 +152,8 @@ smallStepC (While b c,s) = (If b (Seq c (While b c)) Skip,s)
 --smallStepC (DoWhile c b,s) 
 smallStepC (DoWhile c b,s) = (Seq c (If b (DoWhile c b) Skip),s)
 
+
+
 ----------------------
 --  INTERPRETADORES
 ----------------------
